@@ -1,0 +1,354 @@
+/* Deliberately plain. Monospace, boxes, no animation, no gradients.
+
+   Every colour is a token. Dark mode is the second block and nothing else:
+   if a rule below names a colour directly, that rule is a bug, because it
+   will not follow the theme. There is a test that says so.
+
+   The page follows the system preference until the reader picks one, and
+   their pick is remembered. */
+:root {
+  --bg: #fff;
+  --fg: #111;
+  --bar: #eee;
+  --line: #111;
+  --edge: #888;
+  --muted: #555;
+  --dim: #444;
+  --soft: #999;
+  --rule: #ccc;
+  --hover: #ddd;
+  --panel: #fff;
+  --panelhead: #f4f4f4;
+  --zebra: #f7f7f7;
+  --accent: #111;
+  --accent-fg: #fff;
+  --good: #1a7f37;
+  --ok: #060;
+  --danger: #b00;
+  --starve: #ffe9e9;
+  --meterline: #bbb;
+  --disabled: #aaa;
+  --locked: #b6b6b6;
+  --work: #b8860b;
+}
+:root[data-theme="dark"] {
+  --bg: #0e120e;
+  --fg: #d6e2d6;
+  --bar: #162016;
+  --line: #31432f;
+  --edge: #3f553f;
+  --muted: #8da48d;
+  --dim: #9ab09a;
+  --soft: #475d47;
+  --rule: #2a3a2a;
+  --hover: #1d2a1d;
+  --panel: #131a13;
+  --panelhead: #1a241a;
+  --zebra: #141d14;
+  --accent: #7aba7a;
+  --accent-fg: #0e120e;
+  --good: #6fcf6f;
+  --ok: #7ad37a;
+  --danger: #ff7b6e;
+  --starve: #2e1616;
+  --meterline: #3a4c3a;
+  --disabled: #4d5f4d;
+  --locked: #44563f;
+  --work: #e0c040;
+}
+
+body {
+  font: 13px/1.45 "DejaVu Sans Mono", "Consolas", "Courier New", monospace;
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+#menubar {
+  border-bottom: 1px solid var(--fg);
+  padding: 4px 6px;
+  background: var(--bar);
+  position: sticky;
+  top: 0;
+}
+#menubar strong { margin-right: 10px; }
+#menubar button {
+  font: inherit;
+  padding: 1px 7px;
+  margin-right: 2px;
+  background: var(--bg);
+  border: 1px solid var(--edge);
+  cursor: pointer;
+}
+#menubar button:hover { background: var(--hover); }
+#menubar button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+#statusline { margin-left: 12px; color: var(--muted); }
+
+.screen { display: none; padding: 8px; }
+.screen.active { display: block; }
+
+h2 { font-size: 14px; margin: 4px 0 8px; text-transform: uppercase; }
+h3 { font-size: 13px; margin: 14px 0 4px; }
+.note { color: var(--muted); margin: 0 0 10px; }
+
+fieldset { border: 1px solid var(--soft); margin: 0 0 8px; padding: 4px 8px 8px; }
+legend { text-transform: uppercase; color: var(--muted); padding: 0 4px; }
+
+/* -------------------------------------------------------------- HUD */
+#hud { border-collapse: collapse; width: 100%; margin-bottom: 8px; }
+#hud td { vertical-align: top; }
+.hudhead {
+  border: 1px solid var(--fg);
+  padding: 3px 8px;
+  background: var(--bar);
+  font-weight: bold;
+}
+.hudhead span { margin-right: 18px; }
+.hudhead #actname { float: right; margin-right: 0; }
+.col { width: 50%; border: 1px solid var(--fg); padding: 0; }
+.col + .col { border-left: none; }
+
+.panel { border-bottom: 1px solid var(--rule); }
+.panel:last-child { border-bottom: none; }
+.panel .title {
+  background: var(--panelhead);
+  padding: 2px 8px;
+  color: var(--dim);
+  border-bottom: 1px solid var(--hover);
+}
+.panel table { width: 100%; border-collapse: collapse; }
+.panel td { padding: 1px 8px; }
+.panel td.v { text-align: right; white-space: nowrap; }
+.panel td.b { width: 1%; padding-left: 4px; }
+.panel tr.big td { font-size: 20px; font-weight: bold; padding: 4px 8px; }
+.panel tr.starving td { background: var(--starve); }
+
+.meter { height: 6px; background: var(--hover); border: 1px solid var(--meterline); }
+.meter i { display: block; height: 100%; background: var(--fg); }
+.meter.low i { background: var(--danger); }
+
+button.buy {
+  font: inherit;
+  min-width: 26px;
+  border: 1px solid var(--muted);
+  background: var(--bg);
+  cursor: pointer;
+}
+button.buy:hover { background: var(--fg); color: var(--bg); }
+button:disabled { color: var(--disabled); border-color: var(--rule); cursor: default; }
+button:disabled:hover { background: var(--bg); color: var(--disabled); }
+
+/* ---------------------------------------------------------- actions */
+#buttons button {
+  font: inherit;
+  margin: 0 4px 4px 0;
+  padding: 3px 8px;
+  border: 1px solid var(--muted);
+  background: var(--bg);
+  cursor: pointer;
+}
+#buttons button:hover:enabled { background: var(--fg); color: var(--bg); }
+#buttons button b { font-weight: bold; }
+#pricebox { margin-top: 4px; color: var(--muted); }
+#pricebox button { font: inherit; border: 1px solid var(--muted); background: var(--bg); cursor: pointer; }
+#priceout { font-weight: bold; color: var(--fg); }
+
+/* --------------------------------------------------------- projects */
+table#projects, table#alltree, table#modelist, table#modlist,
+table#devlist, table.form { border-collapse: collapse; width: 100%; }
+table#projects td, table#alltree td, table#modelist td, table#modlist td,
+table#devlist td, table.form td { padding: 2px 8px; vertical-align: top; }
+table#projects tr:nth-child(even), table#alltree tr:nth-child(even) { background: var(--zebra); }
+td.cost { text-align: right; white-space: nowrap; color: var(--dim); }
+td.desc { color: var(--muted); }
+tr.locked td { color: var(--soft); }
+tr.done td { color: var(--soft); text-decoration: line-through; }
+button.take {
+  font: inherit; border: 1px solid var(--muted); background: var(--bg); cursor: pointer;
+  padding: 0 8px;
+}
+button.take:hover:enabled { background: var(--fg); color: var(--bg); }
+
+#log { margin: 0; color: var(--dim); white-space: pre-wrap; min-height: 4em; }
+
+/* ----------------------------------------------------- save editor */
+.edgroup { border: 1px solid var(--soft); margin-bottom: 8px; }
+.edgroup > .title { background: var(--bar); padding: 2px 8px; font-weight: bold; }
+.edgroup table { width: 100%; border-collapse: collapse; }
+.edgroup td { padding: 1px 8px; }
+.edgroup input { font: inherit; width: 16em; border: 1px solid var(--edge); padding: 1px 3px; }
+.edgroup tr.changed td { background: var(--bg)be6; }
+.edgroup td.kind { color: var(--edge); width: 8em; }
+#editorprojects label { display: inline-block; width: 24em; padding: 1px 0; }
+
+#devout {
+  border: 1px solid var(--soft); padding: 6px 8px; background: var(--zebra);
+  white-space: pre-wrap; min-height: 3em; margin-top: 8px;
+}
+#devlist input { font: inherit; width: 10em; border: 1px solid var(--edge); }
+#devlist button, #modsave, #dosave, #doload, #modelist button {
+  font: inherit; border: 1px solid var(--muted); background: var(--bg); cursor: pointer;
+  padding: 1px 10px;
+}
+#devlist button:hover, #modsave:hover, #dosave:hover, #doload:hover,
+#modelist button:hover { background: var(--fg); color: var(--bg); }
+input[type=text], #savepath { font: inherit; border: 1px solid var(--edge); padding: 1px 3px; }
+
+#ending {
+  display: none; position: fixed; inset: 0; background: var(--bg);
+  padding: 60px; text-align: center;
+}
+#ending.show { display: block; }
+#ending h1 { font-size: 16px; letter-spacing: 1px; }
+#ending table { margin: 20px auto; border-collapse: collapse; }
+#ending td { padding: 2px 14px; text-align: left; }
+
+.devonly { display: none; }
+body.developer .devonly { display: inline-block; }
+
+/* ------------------------------------------------------ developer panel */
+#devnav { margin-bottom: 8px; }
+#devnav button {
+  font: inherit; padding: 2px 10px; margin-right: 3px;
+  border: 1px solid var(--edge); background: var(--bg); cursor: pointer;
+}
+#devnav button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.devpane { display: none; }
+.devpane.active { display: block; }
+
+.devgroup { border: 1px solid var(--soft); margin-bottom: 8px; }
+.devgroup > .title {
+  background: var(--bar); padding: 2px 8px; font-weight: bold;
+  text-transform: uppercase; color: var(--dim);
+}
+.devgroup table { width: 100%; border-collapse: collapse; }
+.devgroup td { padding: 2px 8px; vertical-align: middle; }
+.devgroup td.act { width: 15em; }
+.devgroup td.arg { width: 9em; }
+.devgroup button {
+  font: inherit; width: 100%; border: 1px solid var(--muted); background: var(--bg);
+  cursor: pointer; padding: 1px 8px; text-align: left;
+}
+.devgroup button:hover { background: var(--fg); color: var(--bg); }
+.devgroup input { font: inherit; width: 8em; border: 1px solid var(--edge); padding: 1px 3px; }
+
+#consoleinput {
+  font: inherit; width: 100%; box-sizing: border-box; border: 1px solid var(--edge);
+  padding: 4px; margin-bottom: 4px;
+}
+#consolerun, #consoleclear {
+  font: inherit; border: 1px solid var(--muted); background: var(--bg); cursor: pointer;
+  padding: 2px 12px; margin-right: 4px;
+}
+#consolerun:hover, #consoleclear:hover { background: var(--fg); color: var(--bg); }
+#consoleout {
+  border: 1px solid var(--soft); background: var(--zebra); padding: 6px 8px;
+  white-space: pre-wrap; min-height: 8em; max-height: 26em; overflow: auto;
+  margin-top: 8px;
+}
+#consoleout .echo { color: var(--dim); font-weight: bold; }
+#consoleout .err { color: var(--danger); }
+#consoleout .val { color: var(--ok); }
+details summary { cursor: pointer; color: var(--muted); margin-top: 8px; }
+#consolehelp { background: var(--zebra); border: 1px solid var(--hover); padding: 6px 8px; }
+
+
+
+
+/* --- the panel tabs ------------------------------------------------- */
+.tabs { display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap; }
+.tab {
+  background: none;
+  border: 1px solid var(--edge);
+  color: var(--muted);
+  font: inherit;
+  padding: 2px 10px;
+  cursor: pointer;
+}
+.tab:hover { color: var(--fg); border-color: var(--fg); }
+.tab.on {
+  color: var(--accent-fg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* --- the tech tree -------------------------------------------------- */
+#techwrap { display: flex; gap: 10px; align-items: flex-start; }
+#techcanvas {
+  overflow: auto;
+  flex: 1 1 auto;
+  border: 1px solid var(--soft);
+  max-height: 72vh;
+}
+#techcanvas svg { display: block; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 8px; }
+.legend span { display: flex; align-items: center; gap: 5px; }
+.legend i { width: 10px; height: 10px; display: inline-block; }
+.detail {
+  flex: 0 0 300px;
+  border: 1px solid var(--soft);
+  padding: 8px 10px;
+  background: var(--panel);
+}
+.detail h3 { margin-top: 0; }
+.detail dt { color: var(--muted); text-transform: uppercase; font-size: 11px; }
+.detail dd { margin: 0 0 8px; }
+.detail li { list-style: none; }
+.detail .done { color: var(--good); }
+.detail .pending { color: var(--locked); }
+.detail button { font: inherit; padding: 3px 12px; cursor: pointer; }
+
+.node { cursor: pointer; }
+.node .ring { fill: var(--panel); stroke: currentColor; stroke-width: 2; }
+.node .icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.node .label { font-size: 11px; fill: var(--fg); }
+.node.locked { color: var(--locked); }
+.node.locked .label { fill: var(--locked); }
+.node.researched .ring { fill: currentColor; }
+.node.researched .icon { stroke: var(--panel); }
+.node.affordable .ring { stroke-dasharray: 4 2; }
+.node.selected .ring { stroke-width: 4; }
+.node.working .ring { stroke-dasharray: none; }
+.node .progress {
+  fill: none;
+  stroke: var(--work);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+.node.foreclosed { color: var(--locked); opacity: 0.45; }
+.node.foreclosed .ring { stroke-dasharray: 1 3; }
+.node.foreclosed .label {
+  fill: var(--locked);
+  text-decoration: line-through;
+}
+
+/* The same bar the terminal draws, as a box rather than glyphs. */
+.progressbar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--soft);
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.progressbar i { display: block; height: 100%; background: var(--work); }
+.dd.effect { color: var(--good); }
+.dd.warn { color: var(--danger); }
+.dd.foreclosed { color: var(--locked); }
+.edge { fill: none; stroke: var(--soft); stroke-width: 1; }
+.edge.done { stroke: var(--good); stroke-width: 1.5; }
+
+#themebtn {
+  font: inherit;
+  padding: 1px 7px;
+  margin-right: 2px;
+  background: var(--bg);
+  color: var(--fg);
+  border: 1px solid var(--edge);
+  cursor: pointer;
+}

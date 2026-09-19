@@ -1,0 +1,23 @@
+# Bytecode
+__pycache__/
+*.py[cod]
+
+# Saves and their backups: personal state, not source. The game makes
+# these next to foundry.py on first run.
+*.save.json
+*.save.json.bak
+*.save.export.json
+*.fsf
+
+# Crash and error logs the game writes when something goes wrong.
+foundry.crash.log
+foundry.errors.log
+
+# Built artefacts. `python foundry.py --build-mod mod_src/<name>` makes the
+# .mpkg files; game.zip is a packaged build.
+game.zip
+
+# Editor and tool settings.
+.claude/
+.vscode/
+.idea/

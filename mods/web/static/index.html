@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FOUNDRY</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<div id="menubar">
+  <strong>FOUNDRY</strong>
+  <span id="menubuttons"></span>
+  <button id="themebtn" title="Light or dark">&#9681;</button><span id="statusline"></span>
+</div>
+
+<!-- ------------------------------------------------------------ game -->
+<div id="screen-game" class="screen">
+  <table id="hud">
+    <tr>
+      <td class="hudhead" colspan="2">
+        <span id="clock">0:00</span>
+        <span id="node">180nm</span>
+        <span id="modename"></span>
+        <span id="actname">ACT I &middot; THE FAB</span>
+      </td>
+    </tr>
+    <tr>
+      <td class="col" id="leftcol"></td>
+      <td class="col" id="rightcol"></td>
+    </tr>
+  </table>
+
+  <fieldset id="actionbar">
+    <legend>Actions</legend>
+    <div id="buttons"></div>
+    <div id="pricebox">
+      price per chip
+      <button data-key="[">&minus;</button>
+      <output id="priceout">$0.15</output>
+      <button data-key="]">+</button>
+      &nbsp; buy multiplier
+      <button data-key="x" id="batchbtn">x1</button>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Log</legend>
+    <pre id="log"></pre>
+  </fieldset>
+</div>
+
+<!-- -------------------------------------------------------- projects -->
+<div id="screen-tech" class="screen">
+  <h2>Tech tree</h2>
+  <p class="note" id="techsummary"></p>
+  <div id="techlegend" class="legend"></div>
+  <div id="techwrap">
+    <div id="techcanvas"></div>
+    <div id="techdetail" class="detail"></div>
+  </div>
+</div>
+
+<div id="screen-projects" class="screen">
+  <h2>Projects</h2>
+  <p class="note">Everything in the tree. Locked entries show what they are
+    waiting on.</p>
+  <table id="alltree"><tbody></tbody></table>
+</div>
+
+<!-- --------------------------------------------------------- new run -->
+<div id="screen-newgame" class="screen">
+  <h2>New Run</h2>
+  <p class="note">Starting a new run discards the game in progress unless you
+    save it first.</p>
+  <table id="modelist"><tbody></tbody></table>
+</div>
+
+<!-- ------------------------------------------------------------ mods -->
+<div id="screen-mods" class="screen">
+  <h2>Mods</h2>
+  <p class="note">Files in the <code>mods/</code> folder. Changes apply on the
+    next new run.</p>
+  <table id="modlist"><tbody></tbody></table>
+  <p><button id="modsave">Apply</button></p>
+</div>
+
+<!-- ----------------------------------------------------------- saves -->
+<div id="screen-saves" class="screen">
+  <h2>Saves</h2>
+  <table class="form">
+    <tr><td>Save file</td><td><input id="savepath" size="52"></td></tr>
+    <tr><td></td><td>
+      <button id="dosave">Save</button>
+      <button id="doload">Load</button>
+    </td></tr>
+  </table>
+  <p class="note">The terminal build reads the same file, so you can hand a run
+    back and forth.</p>
+</div>
+
+<!-- ------------------------------------------------------------ help -->
+<div id="screen-help" class="screen">
+  <h2>How to play</h2>
+  <div id="helptext"></div>
+</div>
+
+<!-- ------------------------------------------------------- developer -->
+<div id="screen-dev" class="screen">
+  <h2>Developer</h2>
+  <div id="devnav">
+    <button data-pane="actions" class="active">Actions</button>
+    <button data-pane="state">State</button>
+    <button data-pane="console">Python Console</button>
+  </div>
+
+  <div id="dev-actions" class="devpane active"></div>
+
+  <div id="dev-state" class="devpane">
+    <p class="note">Every field on the live game. Changes apply immediately;
+      use <b>Saves &rarr; Save</b> to write them to disk.</p>
+    <div id="devfields"></div>
+  </div>
+
+  <div id="dev-console" class="devpane">
+    <p class="note">Runs in-process against the live game. No sandbox &mdash;
+      this is a debug REPL, and it is why the console is only served with
+      <code>--developer</code> on a loopback address.</p>
+    <textarea id="consoleinput" rows="4" spellcheck="false"
+      placeholder="g.chips = 1e30"></textarea>
+    <div>
+      <button id="consolerun">Run  (Ctrl+Enter)</button>
+      <button id="consoleclear">Clear</button>
+      <span class="note" id="consolehint"></span>
+    </div>
+    <pre id="consoleout"></pre>
+    <details><summary>What is in scope</summary><pre id="consolehelp"></pre></details>
+  </div>
+</div>
+
+<!-- ---------------------------------------------------- save editor -->
+<div id="screen-editor" class="screen">
+  <h2>Save Editor</h2>
+  <p class="note">Edits the running game. Use <b>Saves &rarr; Save</b> to write
+    it to disk. Changed fields are marked.</p>
+  <div id="editorfields"></div>
+  <h3>Projects</h3>
+  <div id="editorprojects"></div>
+</div>
+
+<div id="ending"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
