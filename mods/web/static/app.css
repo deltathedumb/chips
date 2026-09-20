@@ -352,3 +352,44 @@ details summary { cursor: pointer; color: var(--muted); margin-top: 8px; }
   border: 1px solid var(--edge);
   cursor: pointer;
 }
+
+/* A server-side overlay has the keyboard exclusively, so it has to be
+   visible here or every keypress disappears into it. */
+#gameoverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 16px;
+}
+#gameoverlay .panel {
+  background: var(--panel);
+  border: 2px solid var(--danger);
+  border-radius: 4px;
+  padding: 16px 20px;
+  max-width: 34em;
+  width: 100%;
+}
+#gameoverlay h2 {
+  margin: 0 0 8px;
+  color: var(--danger);
+  text-transform: uppercase;
+  font-size: 15px;
+}
+#gameoverlay .headline { margin: 0 0 10px; }
+#gameoverlay .note { margin: 2px 0; color: var(--muted); font-size: 12px; }
+#gameoverlay .terms { margin: 12px 0 0; color: var(--work); }
+#gameoverlay .buttons {
+  margin-top: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+#gameoverlay .primary {
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: bold;
+}

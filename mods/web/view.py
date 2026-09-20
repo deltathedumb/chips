@@ -77,6 +77,30 @@ def tech_tree(g):
     }
 
 
+def overlay_of(g):
+    """Whatever full-screen thing has the keyboard, as plain data.
+
+    None when the game is taking keys normally. The browser renders its own
+    tech tree on a tab, so that overlay is reported only so the client can
+    close it rather than sit there swallowing input.
+    """
+    which = getattr(g, "overlay", None)
+    if not which:
+        return None
+    if which == "loan":
+        from pclengine.core import rescue
+        made = rescue.offer(g)
+        if made is None:
+            return None
+        return {"kind": "loan", "title": "The line has stopped",
+                "headline": made.headline, "detail": list(made.detail),
+                "terms": made.terms,
+                "accept": "Take the loan", "dismiss": "Look around first"}
+    return {"kind": which, "title": which.title(),
+            "headline": "", "detail": [], "terms": "",
+            "accept": "", "dismiss": "Close"}
+
+
 def snapshot(g, developer=False):
     left, right = panels_for(g)
     return {
@@ -89,6 +113,11 @@ def snapshot(g, developer=False):
                   "current": v.key == getattr(g, "panel_view", "ops")}
                  for v in panels.visible(g)],
         "node": content.era(g),
+        # An overlay owns the keyboard exclusively. If the browser does not
+        # know one is open it draws nothing, every key the player presses
+        # vanishes, and the game looks broken -- which is exactly what it
+        # did the first time the softlock popup opened itself on the web.
+        "overlay": overlay_of(g),
         "elapsed": dur(g.elapsed),
         "mode": runconfig.label_of(g),
         "setup": runconfig.from_game(g).as_dict(),

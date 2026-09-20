@@ -27,57 +27,22 @@ INTEREST = 2.0
 HEADROOM = 1.5
 
 
-#: A chain with a broken link makes nothing, however much of the rest you
-#: own. These are the counts the loan restores an empty stage to -- small,
-#: because the point is to get the line moving, not to hand you an act.
-CHAIN = (("miner", 2_000.0), ("puller", 2_000.0), ("foundry", 20.0))
-
-
-def _run_of(g, kind, count):
-    """What buying `count` more of a unit costs, on its own curve."""
-    if count <= 0:
-        return 0.0
-    rate, first = g.UNIT_RATE[kind], g.unit_price(kind)
-    if first == float("inf"):
-        return float("inf")
-    return first * math.expm1(count * math.log1p(rate)) / rate
-
-
-def _chain_need(g):
-    """Cost of restoring every empty link, and the power to run them.
-
-    Act II is miners -> matter -> pullers -> wafers -> foundries -> chips.
-    Any one of those at zero stops the line, so a rescue that only paid for
-    solar arrays would leave the fab exactly as dead as it found it.
-    """
-    total = 0.0
-    projected = {}
-    for kind, want in CHAIN:
-        have = float(getattr(g, g.UNIT_ATTR[kind], 0.0))
-        projected[kind] = max(have, want)
-        if have < want and g.can(g.UNIT_TECH.get(kind, kind)):
-            total += _run_of(g, kind, want - have)
-
-    # Power for what will then be running, not for what is running now.
-    drones = (projected["miner"] + projected["puller"]) * 1.1
-    demand = (drones + projected["foundry"] * 200.0) * g.power_eff
-    each = 500.0 * g.solar_perf
-    if each > 0 and demand > g.power_supply():
-        need = math.ceil((demand - g.power_supply()) / each)
-        total += _run_of(g, "solar", need)
-    return total
+#: What the Act II bailout hands over, flat. Sizing it off the chain gave
+#: millions of chips -- enough to buy the act back rather than to restart
+#: it. A fixed, legible figure you can plan against is the better bargain:
+#: it restarts the line and leaves the climb to you.
+ACT_TWO_LOAN = 100_000.0
 
 
 def _need(g):
-    """What it would take to get the line moving again, in the act's purse.
+    """What the loan hands over, and which purse it lands in.
 
-    Act I buys wafers with money; from Act II the purse is finished chips
-    and what is standing still is somewhere along the chain.
+    Act I buys wafers with money; from Act II the purse is finished chips.
     """
     if g.act < 2:
         # Enough for a lot of wafers and the stepper to run them through.
-        return max(g.spot_price * 20.0, g.stepper_cost), "funds"
-    return max(_chain_need(g), g.unit_price("solar")), "unsold"
+        return max(g.spot_price * 20.0, g.stepper_cost) * HEADROOM, "funds"
+    return ACT_TWO_LOAN, "unsold"
 
 
 def _idle_not_stuck(g):
@@ -104,7 +69,6 @@ def _offer(g):
     # because they stopped it, and that is their business.
     if getattr(g, purse) >= amount:
         return None
-    amount *= HEADROOM
     unit = "¤" if purse == "funds" else "chips"
     owed = amount * INTEREST
 
@@ -119,7 +83,7 @@ def _offer(g):
         fix = "enough to buy wafers and run them through"
     else:
         why = "Your line has stalled, and no chips left to restart it."
-        fix = "enough to restart every stage of the line"
+        fix = "a fixed advance against the line getting going again"
     return rescue.Offer(
         headline=why,
         terms=(f"Borrow {amount:,.0f} {unit}; repay {owed:,.0f} "
@@ -127,7 +91,8 @@ def _offer(g):
         accept=accept,
         detail=("Nothing you own has produced anything for two minutes.",
                 f"The bank will advance {fix}.",
-                "Production is garnished until the debt is clear."))
+                "Production is garnished until the debt is clear.",
+                "If it is not enough, they will lend again."))
 
 
 def repay(g, dt):

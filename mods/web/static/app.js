@@ -203,8 +203,46 @@ function actionButtons(state) {
   });
 }
 
+// An overlay owns the keyboard on the server. If the page does not draw
+// one the player presses keys into a void -- which is what happened the
+// first time the softlock popup opened itself here.
+function renderGameOverlay(info) {
+  let box = $("#gameoverlay");
+  if (!info) {
+    if (box) box.remove();
+    return;
+  }
+  if (box && box.dataset.kind === info.kind) return;   // already up
+  if (box) box.remove();
+
+  box = el("div");
+  box.id = "gameoverlay";
+  box.dataset.kind = info.kind;
+  const panel = el("div", "panel");
+  panel.appendChild(el("h2", null, info.title));
+  if (info.headline) panel.appendChild(el("p", "headline", info.headline));
+  (info.detail || []).forEach((line) => {
+    panel.appendChild(el("p", "note", line));
+  });
+  if (info.terms) panel.appendChild(el("p", "terms", info.terms));
+
+  const buttons = el("div", "buttons");
+  if (info.accept) {
+    const yes = el("button", "primary", info.accept);
+    yes.onclick = () => { box.remove(); press("ENTER"); };
+    buttons.appendChild(yes);
+  }
+  const no = el("button", null, info.dismiss || "Close");
+  no.onclick = () => { box.remove(); press("ESC"); };
+  buttons.appendChild(no);
+  panel.appendChild(buttons);
+  box.appendChild(panel);
+  document.body.appendChild(box);
+}
+
 function renderHUD(state) {
   if (!state) return;
+  renderGameOverlay(state.overlay);
   if (state.fatal) {
     showOverlay("SOMETHING BROKE", [["in", state.fatal.where]],
       state.fatal.trace, "resume", async () => {
