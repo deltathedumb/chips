@@ -11,6 +11,7 @@
 """
 
 import argparse
+import os
 import sys
 import time
 
@@ -255,6 +256,8 @@ def main(argv=None):
     if args.test:
         import unittest
 
+        # `tests/__init__.py` points the default save at a sandbox as it is
+        # imported, so nothing in here can land on the player's game.
         suite = unittest.TestLoader().discover("tests", top_level_dir=".")
         result = unittest.TextTestRunner(verbosity=2).run(suite)
         return 0 if result.wasSuccessful() else 1

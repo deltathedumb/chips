@@ -385,6 +385,48 @@ def tech_lines(g, rows):
     return out
 
 
+def loan_lines(g, rows):
+    """The emergency loan, as a body of exactly `rows` rows.
+
+    Centred and boxed rather than run along the top, because it is the one
+    overlay the player did not ask for and it has to read as an event.
+    """
+    from pclengine.core import rescue
+    offer = rescue.offer(g)
+    if offer is None:                       # rescued between tick and draw
+        return [pad("", W - 2) for _ in range(rows)]
+
+    inner = min(W - 8, 72)
+    pane = []
+    pane.append(RED + BOLD + "THE LINE HAS STOPPED" + RESET)
+    pane.append("")
+    pane.append(offer.headline)
+    pane.append("")
+    for line in offer.detail:
+        pane.append(DIM + line + RESET)
+    if offer.detail:
+        pane.append("")
+    pane.append(YELLOW + offer.terms + RESET)
+    if getattr(g, "rescue_taken", 0):
+        pane.append(DIM + f"You have taken {g.rescue_taken} loan(s) already."
+                    + RESET)
+    pane.append("")
+    pane.append(BOLD + "ENTER  take the loan" + RESET
+                + DIM + "     ESC  look around first" + RESET)
+
+    left = max(2, (W - 2 - inner) // 2)
+    top = max(0, (rows - len(pane) - 2) // 2)
+    out = [pad("", W - 2) for _ in range(top)]
+    out.append(" " * left + DIM + "┌" + "─" * inner + "┐" + RESET)
+    for text in pane:
+        out.append(" " * left + DIM + "│" + RESET
+                   + pad(" " + text, inner) + DIM + "│" + RESET)
+    out.append(" " * left + DIM + "└" + "─" * inner + "┘" + RESET)
+    while len(out) < rows:
+        out.append(pad("", W - 2))
+    return [pad(line, W - 2) for line in out[:rows]]
+
+
 def render(g, term_w, term_h, help_on=False, overlay=None):
     if term_w < MIN_W or term_h < MIN_H:
         return [
@@ -440,6 +482,8 @@ def render(g, term_w, term_h, help_on=False, overlay=None):
     lines.append(hrule("├", "┤", junction="┴", at=LEFT + 1))
     if overlay == "tech":
         lines.extend(row(text) for text in tech_lines(g, max(4, room + 1)))
+    elif overlay == "loan":
+        lines.extend(row(text) for text in loan_lines(g, max(4, room + 1)))
     elif overlay:
         # An overlay takes every row going, not the strip the project list
         # would have used -- that strip is capped at fifteen however tall

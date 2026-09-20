@@ -34,6 +34,7 @@ NAME = "FOUNDRY"
 DESCRIPTION = "The base game: silicon, the lithosphere and the light cone."
 
 from base import (bench, constants, crypt, currencies, devtools, help,
+                  rescue as bailout,
                   hud, market, saveedit, strategy, upgrades, warfare)
 from base.acts import dials
 from base.acts import early as acts_early
@@ -75,6 +76,7 @@ def register(api):
     keys.install(api)
     strategy.install(api)
     devtools.install(api)
+    bailout.install(api)
     # How long each of these ought to take. Act I carries the tutorial.
     for number, (low, high) in PACING.items():
         api.pacing(number, low, high)

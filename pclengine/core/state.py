@@ -94,6 +94,11 @@ class Game:
         self.panel_view = "ops"   # ops | war | research | content's own
         self.help_page = 0        # which page of `?` you are reading
         self.overlay = None       # None, or a full-body screen like "tech"
+        # The softlock stopwatch: what the progress metrics last read, and
+        # how long they have read exactly that.
+        self.rescue_mark = None
+        self.rescue_still = 0.0
+        self.rescue_taken = 0
         self.tech_sel = 0         # where you are in the tech tree
         self.rnd_sel = 0          # where you are in the R&D list
         self.war_sel = 0          # where you are in the defender list
@@ -165,8 +170,14 @@ class Game:
         return research.has(self, capability)
 
     # -- the clock ---------------------------------------------------------
+    @property
+    def softlocked(self):
+        """Nothing content cares about has moved, and a way out exists."""
+        from pclengine.core import rescue
+        return rescue.softlocked(self)
+
     def tick(self, dt):
-        from pclengine.core import acts, research, war
+        from pclengine.core import acts, research, rescue, war
         dt *= getattr(self, "time_scale", 1.0)
         self.elapsed += dt
         self.made_rate = 0.0
@@ -182,6 +193,14 @@ class Game:
             hook(self, dt)
         if _MOD_TICK:
             _MOD_TICK[0](self, dt)
+
+        # After the act and every system have had their go: if none of
+        # them moved anything, that is what the stopwatch is counting.
+        rescue.watch(self, dt)
+        # The player did not ask for this one: it opens itself, because a
+        # softlock is exactly the state in which nobody goes looking.
+        if not self.overlay and rescue.softlocked(self):
+            self.overlay = "loan"
 
         if self.defeated:
             self.finished = True

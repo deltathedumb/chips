@@ -69,8 +69,14 @@ class Session:
         blob = codec.pack(save.to_dict(self.game), save.header_for(self.game))
         return base64.b64encode(blob).decode("ascii")
 
-    def adopt(self, encoded):
-        """Take a save the browser was holding. Returns a message."""
+    def adopt(self, encoded, force=False):
+        """Take a save the browser was holding. Returns a message.
+
+        The browser offers its copy on every page load, so this has to
+        refuse one that is behind the game already running: reloading the
+        tab is not a request to roll the run back to whenever it was last
+        written. `force` is the player saying they meant it.
+        """
         try:
             blob = base64.b64decode(encoded.encode("ascii"), validate=True)
         except Exception:
@@ -83,6 +89,11 @@ class Session:
             data = codec.unpack(blob)
         except Exception as exc:
             return "could not read it: " + str(exc)
+        held = float(data.get("elapsed", 0.0) or 0.0)
+        if not force and held < self.game.elapsed - 1.0:
+            return ("held save is older than this run "
+                    f"({held:,.0f}s vs {self.game.elapsed:,.0f}s) -- "
+                    "not restored. Use Restore to load it anyway.")
         with self.lock:
             fresh = Game()
             unknown = save.apply_dict(fresh, data)
@@ -367,7 +378,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if route == "/api/key":
             return self._json(s.press(data.get("key", "")))
         if route == "/api/save/import":
-            return self._json({"message": s.adopt(data.get("blob", ""))})
+            return self._json({"message": s.adopt(
+                data.get("blob", ""), force=bool(data.get("force")))})
         if route == "/api/save/export":
             return self._json({"blob": s.packed()})
         if route == "/api/research":

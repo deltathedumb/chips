@@ -230,6 +230,25 @@ class ModAPI:
         from pclengine.dev import balance
         return balance.seed_probe(fn)
 
+    def progress_metric(self, fn):
+        """Declare a number that ought to climb while the run is alive.
+
+        If every declared metric holds still long enough, the engine calls
+        the run stuck and asks for a rescue offer. Name the quantities that
+        mean production, not every number that happens to move.
+        """
+        from pclengine.core import rescue
+        rescue.add_metric(fn)
+
+    def rescue_offer(self, fn):
+        """Register `fn(g) -> rescue.Offer or None`, a way out of a corner.
+
+        Returning None means "they are idle, not stuck", and no popup is
+        shown -- so a game can decline to rescue states it considers fair.
+        """
+        from pclengine.core import rescue
+        rescue.add_offer(fn)
+
     def strategy(self, act, fn):
         """How the balance bot plays an act. None is the fallback."""
         return autoplay.add_strategy(act, fn)

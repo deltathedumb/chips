@@ -126,6 +126,15 @@ def header_for(g):
     }
 
 
+#: Why the last save failed, if it did. One entry or none.
+LAST_ERROR = []
+
+
+def why_failed():
+    """The reason the last save did not write, or ''."""
+    return LAST_ERROR[0] if LAST_ERROR else ""
+
+
 def save(g, path=None, backup=False, as_json=False):
     """Write a save in whichever format is installed."""
     path = path or default_path()
@@ -137,8 +146,13 @@ def save(g, path=None, backup=False, as_json=False):
                 dst.write(src.read())
         with open(path, "wb") as fh:
             fh.write(blob)
+        LAST_ERROR[:] = []
         return True
-    except (OSError, Exception):
+    except Exception as exc:                          # noqa: BLE001
+        # Returning a bare False hid why a save did nothing, which is the
+        # worst possible thing for a save to do quietly. Keep the reason so
+        # a caller can say it out loud.
+        LAST_ERROR[:] = [f"{type(exc).__name__}: {exc}"]
         return False
 
 

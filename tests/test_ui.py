@@ -148,6 +148,53 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class TestWebSaveHandoff(unittest.TestCase):
+    """The two ways the browser front end lost a save.
+
+    Both were silent: the player pressed save, was told it had worked, and
+    found an older game the next time the page loaded.
+    """
+
+    def session(self, mode="client"):
+        from mods.web import server
+        from pclengine.core.state import Game
+        return server.Session(Game(seed=4), save_mode=mode)
+
+    def test_held_save_older_than_the_run_is_refused(self):
+        s = self.session()
+        s.game.elapsed = 50.0
+        blob = s.packed()               # a save taken at t=50
+        s.game.elapsed = 9000.0         # ...and then two and a half hours
+        message = s.adopt(blob)
+        self.assertIn("older", message)
+        self.assertEqual(s.game.elapsed, 9000.0,
+                         "reloading the tab rolled the run back")
+
+    def test_held_save_is_adopted_when_asked_for(self):
+        s = self.session()
+        s.game.elapsed = 50.0
+        blob = s.packed()
+        s.game.elapsed = 9000.0
+        s.adopt(blob, force=True)
+        self.assertEqual(s.game.elapsed, 50.0)
+
+    def test_a_fresh_server_accepts_the_held_save(self):
+        s = self.session()
+        s.game.elapsed = 9000.0
+        blob = s.packed()
+        fresh = self.session()          # server restarted: elapsed 0
+        fresh.adopt(blob)
+        self.assertEqual(fresh.game.elapsed, 9000.0)
+
+    def test_the_handoff_is_only_offered_once(self):
+        """Which is why the client must store it before it drops a frame."""
+        s = self.session()
+        s.keep()
+        first = s.snapshot()
+        self.assertIn("saveBlob", first)
+        self.assertNotIn("saveBlob", s.snapshot())
+
+
 class TestTheme(unittest.TestCase):
     """Dark mode is a block of tokens, so nothing may name a colour."""
 

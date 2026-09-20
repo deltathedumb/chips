@@ -72,10 +72,16 @@ async function offerHeldSave() {
 }
 
 function accept(state, ticket) {
-  if (!state || ticket < RENDERED) return false;
+  if (!state) return false;
+  // The save blob is handed over exactly once -- the server drops it the
+  // moment any snapshot carries it -- so it has to be stored before the
+  // staleness check, not after. Discarding an out-of-order *picture* is
+  // right; discarding the only copy of the save inside it is how a save
+  // silently did nothing and the next reload restored an older one.
+  if (state.saveBlob) keepSave(state.saveBlob);
+  if (ticket < RENDERED) return false;
   RENDERED = ticket;
   STATE = state;
-  if (state.saveBlob) keepSave(state.saveBlob);
   renderHUD(STATE);
   return true;
 }

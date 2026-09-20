@@ -38,6 +38,35 @@ class TestKeyHandling(unittest.TestCase):
                     with self.subTest(act=act.number, view=panel_view, key=key):
                         actions.handle_key(key, g)
 
+    def test_pressing_save_cannot_reach_the_real_game(self):
+        """The suite must never write the player's save file.
+
+        `test_no_key_raises_in_any_act_or_view` presses every key in every
+        act, and "S" saves with no path. That wrote over a real game in
+        progress and destroyed it. `tests/__init__` redirects the default
+        save to a sandbox; this asserts the redirect is actually in force,
+        because the failure mode is silent and only shows up as a lost run.
+        """
+        import os
+
+        from pclengine import paths
+        from pclengine.store import save
+
+        written = os.path.abspath(save.default_path())
+        self.assertNotEqual(
+            os.path.dirname(written), os.path.abspath(paths.PROJECT),
+            "the default save path is the real one: pressing S in a test "
+            "would overwrite the player's game")
+
+        before = os.path.exists(paths.SAVE_PATH) and open(
+            paths.SAVE_PATH, "rb").read()
+        g = Game()
+        g.act, g.funds = 2, 1e9
+        actions.handle_key("S", g)
+        after = os.path.exists(paths.SAVE_PATH) and open(
+            paths.SAVE_PATH, "rb").read()
+        self.assertEqual(before, after, "pressing S touched the real save")
+
     def test_quit_and_menu_are_reported(self):
         g = Game()
         self.assertEqual(actions.handle_key("q", g), "quit")

@@ -35,6 +35,18 @@ def _overlay_active(g):
 
 
 def _overlay(g, key):
+    if getattr(g, "overlay", None) == "loan":
+        # The one overlay the player did not open. A stray keypress must
+        # not sign for a loan, so only ENTER accepts and only ESC leaves.
+        from pclengine.core import rescue
+        if key in ("ENTER", " "):
+            if rescue.accept(g):
+                g.overlay = None
+                return "resize"
+        elif key in ("ESC", "q", "n"):
+            g.overlay = None
+            return "resize"
+        return True
     if getattr(g, "overlay", None) != "tech":
         # Any other overlay is read-only: anything closes it.
         g.overlay = None
@@ -56,12 +68,16 @@ def _overlay(g, key):
 
 
 def _overlay_binds(g):
+    if getattr(g, "overlay", None) == "loan":
+        return [Bind("ENTER", "take the loan"), Bind("ESC", "not yet")]
     return [Bind("UP", "up"), Bind("DOWN", "down"),
             Bind("LEFT", "back a page"), Bind("RIGHT", "on a page"),
             Bind("ENTER", "start / put aside"), Bind("T", "close")]
 
 
 def _overlay_footer(g):
+    if getattr(g, "overlay", None) == "loan":
+        return "  ENTER take the loan   ESC look around first"
     return ("  ↑↓ move a node   ←→ jump a page"
             "   ENTER start work   T close")
 
@@ -86,8 +102,11 @@ def _chrome(g, key):
         panels.cycle(g)
         return True
     if key == "S":
-        g.log("Game saved." if save.save(g)
-              else "Could not write the save file.")
+        if save.save(g):
+            g.log("Game saved.")
+        else:
+            g.log("Could not write the save file. "
+                  + (save.why_failed() or "No reason given."))
         return True
     if key in ("-", "_"):
         g.hud_width = max(screen.MIN_W, screen.W - 8)

@@ -32,7 +32,7 @@ import sys
 
 from pclengine import paths
 from pclengine.core import (acts, currency, modifiers, prestige, projects,
-                            research, state, war)
+                            rescue, research, state, war)
 from pclengine.dev import autoplay
 from pclengine.modding import api
 from pclengine.modding.api import ModAPI
@@ -175,6 +175,7 @@ def clear():
     research.reset()
     war.reset()
     prestige.reset()
+    rescue.reset()
     autoplay.reset()
     state.reset()
     del api.TICK_HOOKS[:], api.NEW_GAME_HOOKS[:], LOADED[:]
